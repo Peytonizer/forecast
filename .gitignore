@@ -1,0 +1,14 @@
+dist/
+node_modules/
+.DS_Store
+.env
+.env.*
+# Excel lock files
+~$*
+
+# Internal working docs — real copies live in the private workbench repo.
+# Also covered by the global ignore, but kept here so the rule travels with the repo.
+CLAUDE.local.md
+CLAUDE.md
+SPEC.md
+IDEAS.md

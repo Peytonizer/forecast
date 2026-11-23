@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>forecast — maintenance forecasts for strata</title>
+  <meta name="description" content="Fifteen-year maintenance forecast spreadsheets for strata, with a 3–5 year window view to scope a contract tender. Download a workbook; nothing is uploaded." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b33a5f'/%3E%3Cpath d='M8 22l5-6 4 3 7-9' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <style>
+/*__KIT_CSS__*/
+  </style>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--font-body); line-height: 1.55; }
+    .shell { max-width: 46rem; margin: 0 auto; padding: 3rem 1rem 4rem; }
+    h1 { font-family: var(--font-display); font-size: 2.4rem; margin: 0 0 .25rem; }
+    h1 .dot { color: var(--accent-text); }
+    h2 { font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 .4rem; }
+    .tagline { color: var(--ink-soft); margin: 0 0 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
+            box-shadow: var(--shadow-soft); padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
+    .card.soon { background: var(--surface-sunk); box-shadow: none; }
+    .card p { margin: .3rem 0 .8rem; color: var(--ink-soft); }
+    .pill { display: inline-block; font-size: .75rem; padding: .1rem .55rem; border-radius: 99px; background: var(--pistachio); color: var(--ink); margin-left: .5rem; vertical-align: middle; }
+    .pill.soon { background: var(--lemon); }
+    a.btn { display: inline-block; padding: .5rem 1rem; border-radius: var(--radius-control); background: var(--accent);
+            color: var(--on-accent); text-decoration: none; font-weight: 600; }
+    a.btn:hover { background: var(--accent-hover); }
+    a.btn:focus-visible { outline: 3px solid var(--bleuet); outline-offset: 2px; }
+    ul { color: var(--ink-soft); padding-left: 1.2rem; margin: .3rem 0 1rem; }
+    .fine { color: var(--ink-faint); font-size: .85rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <h1>forecast<span class="dot">.</span></h1>
+    <p class="tagline">Fifteen-year maintenance forecasts for strata. List the tasks and how often they fall due, then look at any 3–5 year window to see what a contract tender needs to cover.</p>
+
+    <section class="card">
+      <h2>Fire maintenance <span class="pill">available</span></h2>
+      <p>Four contracts, 15 years. Add a task with its frequency (fire door inspection, annual; fire booster tank service, 5-yearly) and it flows into the year-by-year schedule, the contract summary and the tender window.</p>
+      <ul>
+        <li><strong>Register</strong> — one row per task; the 15-year grid fills itself.</li>
+        <li><strong>Window</strong> — pick 3, 4 or 5 years (and optionally one contract) to list what falls due.</li>
+        <li><strong>Summary</strong> — services due by contract and year, with a chart.</li>
+      </ul>
+      <a class="btn" href="files/fire-maintenance-forecast.xlsx" download>Download the workbook (.xlsx)</a>
+    </section>
+
+    <section class="card soon">
+      <h2>Plumbing <span class="pill soon">coming</span></h2>
+      <p>The same workbook for plumbing maintenance.</p>
+    </section>
+
+    <p class="fine">The workbooks hold example tasks only; contract names are placeholders. They list tasks, not costs. Part of <a href="https://strata.noradz.io/">strata</a>, small tools for strata work in the ACT. Nothing on this page is advice, and nothing you enter is sent anywhere — it stays in your copy of the file.</p>
+  </main>
+</body>
+</html>
