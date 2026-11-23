@@ -16,12 +16,13 @@ It forecasts tasks, not costs.
 
 Each workbook has the same sheets:
 
-- **Register** — one row per task per building: frequency, first due year, quantity and
+- **Data** — one row per task per building: frequency, first due year, quantity and
   notes. The 15-year grid fills itself.
-- **Window** — choose a start year, 3, 4 or 5 years, and optionally one building; it lists every
+- **Overview** — choose a start year, 3, 4 or 5 years, and optionally one building; it lists every
   task due in that window, year by year.
-- **Summary** — services due by building and year, with a chart.
 - **Settings** — start year, building names, frequencies.
+
+Sheets are protected (no password) so only the yellow input cells can be edited.
 
 Each workbook covers four buildings being managed. Building names and example tasks are placeholders — overwrite them.
 

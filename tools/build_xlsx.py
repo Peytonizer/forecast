@@ -1,5 +1,5 @@
 """Builds a maintenance-forecast workbook for one trade. Each workbook covers four buildings being
-managed; the Window sheet scopes a maintenance contract tender for any 3-5 year span.
+managed; the Overview sheet scopes a maintenance contract tender for any 3-5 year span.
 
 Usage: python3 tools/build_xlsx.py fire      -> files/fire-maintenance-forecast.xlsx
 
@@ -8,11 +8,10 @@ A new trade (plumbing, lifts...) is a new entry in TRADES below: building names 
 import sys
 from pathlib import Path
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, Protection
 from openpyxl.utils import get_column_letter as L
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import FormulaRule, CellIsRule
-from openpyxl.chart import BarChart, Reference
 
 TRADES = {
     "fire": {
@@ -56,8 +55,8 @@ def build(key):
     T = TRADES[key]
     wb = Workbook()
     g = wb.active; g.title = "Guide"
-    w = wb.create_sheet("Window"); r = wb.create_sheet("Register")
-    s = wb.create_sheet("Summary"); st = wb.create_sheet("Settings")
+    w = wb.create_sheet("Overview"); r = wb.create_sheet("Data")
+    st = wb.create_sheet("Settings")
     YC = 10                      # first year column on Register (J)
     Y0, Y1 = L(YC), L(YC + N - 1)  # J, X
     TOT, INW, SEQ = L(YC + N), L(YC + N + 1), L(YC + N + 2)   # Y, Z, AA
@@ -82,7 +81,7 @@ def build(key):
     for col, wd in zip("ABCDEF", [46, 6, 3, 18, 18, 14]): st.column_dimensions[col].width = wd
 
     # ---- Register
-    title(r, T["title"] + " - Register", "One row per task per building. Fill the yellow columns; the year grid fills itself. Rows 6-205 are live.")
+    title(r, T["title"] + " - Data", "One row per task per building. Fill the yellow columns; the year grid fills itself. Rows 6-205 are live.")
     heads = ["#", "Task", "Building", "Frequency", "First / anchor due year", "Qty / scope", "Notes", "Services / yr", "Cycle (yrs)"]
     for i, h in enumerate(heads): r.cell(5, 1 + i, h)
     for k in range(N): r.cell(5, YC + k, f"=Settings!$B$3+{k}")
@@ -104,8 +103,8 @@ def build(key):
                        f'IF(MOD({col}$5-$E{row},$I{row})=0,$H{row},0)))')
             x.number_format = "0;;"; x.alignment = Alignment(horizontal="center"); x.font = f(); x.border = BOX
         r[f"{TOT}{row}"] = f"=SUM({Y0}{row}:{Y1}{row})"
-        r[f"{INW}{row}"] = f'=SUMIFS({Y0}{row}:{Y1}{row},${Y0}$5:${Y1}$5,">="&Window!$C$4,${Y0}$5:${Y1}$5,"<="&Window!$C$6)'
-        r[f"{SEQ}{row}"] = (f'=IF(AND($B{row}<>"",{INW}{row}>0,OR(Window!$C$7="All",$C{row}=Window!$C$7)),'
+        r[f"{INW}{row}"] = f'=SUMIFS({Y0}{row}:{Y1}{row},${Y0}$5:${Y1}$5,">="&Overview!$C$4,${Y0}$5:${Y1}$5,"<="&Overview!$C$6)'
+        r[f"{SEQ}{row}"] = (f'=IF(AND($B{row}<>"",{INW}{row}>0,OR(Overview!$C$7="All",$C{row}=Overview!$C$7)),'
                             f'COUNT({SEQ}$5:{SEQ}{row - 1})+1,"")')
         for col in (TOT, INW): r[f"{col}{row}"].number_format = "0;;"
         for col in ("A", "H", "I", TOT, INW, SEQ):
@@ -137,7 +136,7 @@ def build(key):
     r.freeze_panes = "C6"
 
     # ---- Window
-    title(w, "Tender Window", "Pick a 3-5 year window (and optionally one building) to list every task that falls due - the scope for the maintenance contract tender.")
+    title(w, "Overview", "Pick a 3-5 year window (and optionally one building) to list every task that falls due - the scope for the maintenance contract tender.")
     for t, row in (("Window start year", 4), ("Years in window (3-5)", 5), ("Window end year", 6), ("Building filter", 7)):
         w[f"B{row}"] = t; w[f"B{row}"].font = f(bold=True)
     w["C4"] = "=Settings!$B$3"; w["C5"] = 5; w["C6"] = "=MIN(C4+C5-1,Settings!$B$3+14)"; w["C7"] = "All"
@@ -145,24 +144,24 @@ def build(key):
     w["D4"] = "Defaults to the forecast start year - overtype to change."; w["D4"].font = f(italic=True, color="666666", size=9)
     w["C6"].border = BOX; w["C6"].font = f(bold=True)
     for a in ("C4", "C5", "C6", "C7"): w[a].alignment = Alignment(horizontal="center")
-    for fm, a in ((f"=Register!${Y0}$5:${Y1}$5", "C4"), ('"3,4,5"', "C5"), ("=Settings!$A$8:$A$12", "C7")):
+    for fm, a in ((f"=Data!${Y0}$5:${Y1}$5", "C4"), ('"3,4,5"', "C5"), ("=Settings!$A$8:$A$12", "C7")):
         dv = DataValidation(type="list", formula1=fm, showErrorMessage=True, error="Pick a value from the list.")
         w.add_data_validation(dv); dv.add(a)
     W0, W1 = 13, 212
     for i, h in enumerate(["#", "Task", "Building", "Frequency", "Qty / scope"]): w.cell(12, 1 + i, h)
     for k in range(5): w.cell(12, 6 + k, f'=IF($C$4+{k}<=$C$6,$C$4+{k},"")')
-    w["K12"] = "Total services"; w["L12"] = "Register row"
+    w["K12"] = "Total services"; w["L12"] = "Data row"
     hdr(w, 12, 1, 12); w.row_dimensions[12].height = 32
     for row in range(W0, W1 + 1):
         n = row - W0 + 1
-        w[f"A{row}"] = f'=IF({n}<=MAX(Register!${SEQ}${R0}:${SEQ}${R1}),{n},"")'
-        w[f"L{row}"] = f'=IF($A{row}="","",MATCH($A{row},Register!${SEQ}${R0}:${SEQ}${R1},0))'
+        w[f"A{row}"] = f'=IF({n}<=MAX(Data!${SEQ}${R0}:${SEQ}${R1}),{n},"")'
+        w[f"L{row}"] = f'=IF($A{row}="","",MATCH($A{row},Data!${SEQ}${R0}:${SEQ}${R1},0))'
         for col, src in (("B", "B"), ("C", "C"), ("D", "D"), ("E", "F")):
-            w[f"{col}{row}"] = f'=IF($A{row}="","",INDEX(Register!${src}${R0}:${src}${R1},$L{row}))'
+            w[f"{col}{row}"] = f'=IF($A{row}="","",INDEX(Data!${src}${R0}:${src}${R1},$L{row}))'
         for k in range(5):
             col = L(6 + k)
             w[f"{col}{row}"] = (f'=IF(OR($A{row}="",{col}$12=""),"",'
-                                f'INDEX(Register!${Y0}${R0}:${Y1}${R1},$L{row},{col}$12-Settings!$B$3+1))')
+                                f'INDEX(Data!${Y0}${R0}:${Y1}${R1},$L{row},{col}$12-Settings!$B$3+1))')
             w[f"{col}{row}"].number_format = "0;;"; w[f"{col}{row}"].alignment = Alignment(horizontal="center")
         w[f"K{row}"] = f'=IF($A{row}="","",SUM(F{row}:J{row}))'
         for col in range(1, 12):
@@ -173,52 +172,19 @@ def build(key):
     for col, wd in zip("ABCDEFGHIJKL", [5, 34, 18, 13, 11, 9, 9, 9, 9, 9, 12, 10]): w.column_dimensions[col].width = wd
     w.freeze_panes = "A13"
 
-    # ---- Summary
-    title(s, "Summary", "Services due by building across the full 15-year horizon (calculated).")
-    s["A4"] = "Services due by building"; s["A4"].font = f(bold=True)
-    s["A5"] = "Building"
-    for k in range(N): s.cell(5, 2 + k, f"=Register!{L(YC + k)}5")
-    s.cell(5, 17, "15-yr total"); hdr(s, 5, 1, 17)
-    for i in range(4):
-        row = 6 + i; s[f"A{row}"] = f"=Settings!$A${9 + i}"
-        for k in range(N):
-            c = L(YC + k)
-            s[f"{L(2 + k)}{row}"] = f"=SUMIFS(Register!{c}${R0}:{c}${R1},Register!$C${R0}:$C${R1},$A{row})"
-        s[f"Q{row}"] = f"=SUM(B{row}:P{row})"
-    s["A10"] = "Unassigned (no building)"
-    for k in range(N):
-        col = L(2 + k); s[f"{col}10"] = f"=Register!{L(YC + k)}4-SUM({col}6:{col}9)"
-    s["Q10"] = "=SUM(B10:P10)"
-    s["A11"] = "Total"
-    for k in range(N + 1):
-        col = L(2 + k); s[f"{col}11"] = f"=SUM({col}6:{col}10)"
-    for row in range(6, 12):
-        for col in range(1, 18):
-            x = s.cell(row, col); x.font = f(bold=(row == 11)); x.border = BOX
-            if col > 1: x.number_format = "0;;-"; x.alignment = Alignment(horizontal="center")
-    s.column_dimensions["A"].width = 44
-    for k in range(N + 1): s.column_dimensions[L(2 + k)].width = 9
-    s.freeze_panes = "B6"
-    ch = BarChart(); ch.type = "col"; ch.grouping = "stacked"; ch.overlap = 100
-    ch.title = "Services due by building"; ch.height = 9; ch.width = 26
-    ch.add_data(Reference(s, min_col=1, max_col=16, min_row=6, max_row=9), from_rows=True, titles_from_data=True)
-    ch.set_categories(Reference(s, min_col=2, max_col=16, min_row=5))
-    ch.roundedCorners = False; ch.legend.overlay = False; ch.legend.position = "b"
-    ch.x_axis.delete = False; ch.y_axis.delete = False
-    s.add_chart(ch, "A14")
-
     # ---- Guide
     title(g, T["title"] + " - 15 years, 4 buildings", "Placeholder building names and example tasks are included - overwrite them.")
     lines = [("How to use", None),
         ("1. Settings", "Set the forecast start year and rename the 4 buildings. Add custom frequencies if needed."),
-        ("2. Register", "Add one row per task per building: task, building, frequency and the year it is (or was) first due. Qty / scope is optional but helps a tender."),
+        ("2. Data", "Add one row per task per building: task, building, frequency and the year it is (or was) first due. Qty / scope and notes are optional but help a tender."),
         ("", "The 15-year grid fills itself: a number is how many services fall due that year. 'First / anchor due year' can be earlier than the start year - the cycle is projected forward from it."),
-        ("", "Adding a task = type in the next empty yellow row. Rows turn red if building, frequency or year is missing."),
-        ("3. Window", "Choose a start year (it defaults to the forecast start year) and 3, 4 or 5 years, optionally for one building. It lists every task due in that window, year by year - the scope for the maintenance contract tender."),
-        ("4. Summary", "Services due by building and year, plus a chart. Calculated - do not type in it."),
+        ("", "Adding a task = type in the next empty yellow row. To remove one, clear its yellow cells. Rows turn red if building, frequency or year is missing."),
+        ("3. Overview", "Choose a start year (it defaults to the forecast start year) and 3, 4 or 5 years, optionally for one building. It lists every task due in that window, year by year - the scope for the maintenance contract tender."),
         ("Colour key", None),
-        ("Blue on yellow", "Input cells."), ("Black / grey", "Formulas - leave alone."),
+        ("Blue on yellow", "Input cells - the only cells you can edit."), ("Black / grey", "Formulas - locked."),
         ("Green", "Linked from Settings (building names in the example rows)."),
+        ("Protection", None),
+        ("", "Every sheet is protected so formulas can't be overwritten by accident; only the yellow cells can be edited. There is no password: use Review > Unprotect Sheet (Excel) if you need to change a formula or add rows beyond 200."),
         ("Assumptions", None),
         ("", "Sub-annual frequencies (monthly, quarterly, 6-monthly) count as that many services in every year from the first due year."),
         ("", "Example tasks are illustrative only. Years are whatever basis you choose (calendar or financial) - be consistent."),
@@ -234,6 +200,14 @@ def build(key):
         row += 1
     g.column_dimensions["A"].width = 20; g.column_dimensions["B"].width = 110
     for ws in wb: ws.sheet_view.showGridLines = False
+    for ws in wb:
+        for row in ws.iter_rows():
+            for x in row:
+                if x.fill is not None and x.fill.fgColor is not None and x.fill.fgColor.rgb in ("00FFF9DB", "FFFFF9DB"):
+                    x.protection = Protection(locked=False)
+        ws.protection.sheet = True
+        ws.protection.formatColumns = False   # False = allowed: let people resize columns and rows
+        ws.protection.formatRows = False
     wb.calculation.fullCalcOnLoad = True
     out = Path(__file__).resolve().parent.parent / "files" / T["file"]
     wb.save(out); print("wrote", out)
